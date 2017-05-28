@@ -73,7 +73,7 @@ def parse_blogspot(url):
 				if proxies:
 					found      += proxies
 					proxy_list += proxies
-				debug(f'Found {len(found)} proxies on {url}')
+			debug('Found {0} proxies on {1}'.format(format(len(found), ',d'), url))
 		else:
 			error('No posts found on page!', url)
 	except Exception as ex:
@@ -94,7 +94,7 @@ for thread in threads:
 	threads[thread].start()
 for thread in threads:
 	threads[thread].join()
-debug(f'Found {len(proxy_list)} total proxies!')
+debug('Found {0} total proxies!'.format(format(len(proxy_list), ',d')))
 with open (proxy_file, 'w') as proxy__file:
 	for proxy in proxy_list:
 		proxy__file.write(proxy + '\n')

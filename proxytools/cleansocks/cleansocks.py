@@ -14,8 +14,8 @@ import time
 sys.dont_write_bytecode = True
 
 # Config
-max_threads = 100
-timeout     = 15
+max_threads = 150
+timeout     = 5
 
 def alert(msg):
 	print(f'{get_time()} | [+] - {msg}')
@@ -72,7 +72,7 @@ if os.path.isfile(args.input):
 	proxies = [line.strip() for line in open(args.input).readlines() if line]
 else:
 	error_exit('Missing proxies file!')
-debug(f'Loaded {len(proxies)} proxies from file.')
+debug('Loaded {0} proxies from file.'.format(format(len(proxies), ',d')))
 debug('Removing duplicate/invalid proxies...')
 invalid = list()
 for proxy in proxies:
@@ -97,8 +97,8 @@ alive.sort()
 with open (args.output, 'w') as output_file:
 	for proxy in alive:
 		output_file.write(proxy + '\n')
-debug(f'Total     : {len(proxies)}')
-debug(f'Invalid   : {len(invalid)}')
-debug(f'Duplicate : {len(proxies)-len(dedupered)}')
-debug(f'Dead      : {len(dedupered)-len(alive)}')
-debug(f'Alive     : {len(alive)}')
+debug('Total     : ' + format(len(proxies),                ',d'))
+debug('Invalid   : ' + format(len(invalid),                ',d'))
+debug('Duplicate : ' + format(len(proxies)-len(dedupered), ',d'))
+debug('Dead      : ' + format(len(dedupered)-len(alive),   ',d'))
+debug('Alive     : ' + format(len(alive),                  ',d'))

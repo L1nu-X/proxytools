@@ -11,15 +11,13 @@ import socket
 import time
 
 # Config
-dnsbls      = ('dnsbl.dronebl.org', 'rbl.efnetrbl.org', 'torexit.dan.me.uk')
+dnsbls  = ('dnsbl.dronebl.org', 'rbl.efnetrbl.org', 'torexit.dan.me.uk')
 max_threads = 100
-timeout     = 30
+timeout = 30
 
 # Globals
 bad  = list()
 good = list()
-
-socket.setdefaulttimeout(timeout)
 
 def alert(msg):
 	print(f'{get_time()} | [+] - {msg}')
@@ -27,11 +25,8 @@ def alert(msg):
 def debug(msg):
 	print(f'{get_time()} | [~] - {msg}')
 
-def error(msg, reason=None):
-	if reason:
-		print(f'{get_time()} | [!] - {msg} ({reason})')
-	else:
-		print(f'{get_time()} | [!] - {msg}')
+def error(msg):
+	print(f'{get_time()} | [!] - {msg}')
 
 def error_exit(msg):
 	raise SystemExit(f'{get_time()} | [!] - {msg}')
@@ -74,8 +69,9 @@ if os.path.isfile(args.input):
 	proxies = [line.strip() for line in open(args.input).readlines() if line]
 else:
 	error_exit('Missing proxies file!')
-debug(f'Loaded {len(proxies)} proxies from file.')
+debug('Loaded {0} proxies from file.'.format(format(len(proxies), ',d')))
 debug('Starting scan...')
+socket.setdefaulttimeout(timeout)
 with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
 	checks = {executor.submit(check_proxy, proxy): proxy for proxy in proxies}
 	for future in concurrent.futures.as_completed(checks):
@@ -84,6 +80,6 @@ good.sort()
 with open (args.output, 'w') as output_file:
 	for proxy in good:
 		output_file.write(proxy + '\n')
-debug(f'Total: {len(proxies)}')
-debug(f'Bad:   {len(bad)}')
-debug(f'Good:  {len(good)}')
+debug('Total: ' + format(len(proxies), ',d'))
+debug('Bad:   ' + format(len(bad),     ',d'))
+debug('Good:  ' + format(len(good),    ',d'))
