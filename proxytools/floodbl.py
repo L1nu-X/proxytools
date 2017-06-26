@@ -7,36 +7,15 @@
 import argparse
 import concurrent.futures
 import os
+import re
 import socket
-import time
 
-# Config
-dnsbls  = ('dnsbl.dronebl.org', 'rbl.efnetrbl.org', 'torexit.dan.me.uk')
-max_threads = 100
-timeout = 30
+dnsbls = ('dnsbl.dronebl.org','rbl.efnetrbl.org','torexit.dan.me.uk')
 
-# Globals
-bad  = list()
-good = list()
-
-def alert(msg):
-	print(f'{get_time()} | [+] - {msg}')
-
-def debug(msg):
-	print(f'{get_time()} | [~] - {msg}')
-
-def error(msg):
-	print(f'{get_time()} | [!] - {msg}')
-
-def error_exit(msg):
-	raise SystemExit(f'{get_time()} | [!] - {msg}')
-
-def get_time():
-	return time.strftime('%I:%M:%S')
-
-def check_proxy(proxy):
-	global bad, good
-	ip = proxy.split(':')[0]
+def dnsbl_check(proxy):
+	global good
+	bad = False
+	ip  = proxy.split(':')[0]
 	formatted_ip = '.'.join(ip.split('.')[::-1])
 	for dnsbl in dnsbls:
 		try:
@@ -44,42 +23,32 @@ def check_proxy(proxy):
 		except socket.gaierror:
 			pass
 		else:
-			bad.append(ip)
+			bad = True
 			break
-	if ip in bad:
-		error('BAD  | ' + ip)
+	if bad:
+		print('BAD  | ' + ip)
 	else:
 		good.append(proxy)
-		alert('GOOD | ' + ip)
+		print('GOOD | ' + ip)
 
-# Main
-print(''.rjust(56, '#'))
-print('#{0}#'.format(''.center(54)))
-print('#{0}#'.format('FloodBL (DNSBL Proxy Tester)'.center(54)))
-print('#{0}#'.format('Developed by acidvegas in Python 3'.center(54)))
-print('#{0}#'.format('https://github.com/acidvegas/proxytools'.center(54)))
-print('#{0}#'.format(''.center(54)))
-print(''.rjust(56, '#'))
-parser = argparse.ArgumentParser(prog='floodbl.py', usage='%(prog)s <input> <output>')
-parser.add_argument('input',  help='file to scan')
-parser.add_argument('output', help='file to output')
+parser = argparse.ArgumentParser(usage='%(prog)s <input> <output> [options]')
+parser.add_argument('input',           help='file to scan')
+parser.add_argument('output',          help='file to output')
+parser.add_argument('-t', '--threads', help='number of threads (default: 100)', default=100, type=int)
 args = parser.parse_args()
-debug('Loading proxy file...')
-if os.path.isfile(args.input):
-	proxies = [line.strip() for line in open(args.input).readlines() if line]
-else:
-	error_exit('Missing proxies file!')
-debug('Loaded {0} proxies from file.'.format(format(len(proxies), ',d')))
-debug('Starting scan...')
-socket.setdefaulttimeout(timeout)
-with concurrent.futures.ThreadPoolExecutor(max_workers=max_threads) as executor:
-	checks = {executor.submit(check_proxy, proxy): proxy for proxy in proxies}
+if not os.path.isfile(args.input):
+	raise SystemExit('no such input file')
+proxies = re.findall('[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+', open(args.input).read(), re.MULTILINE)
+if not proxies:
+	raise SystemExit('no proxies found from input file')
+good = list()
+with concurrent.futures.ThreadPoolExecutor(max_workers=args.threads) as executor:
+	checks = {executor.submit(dnsbl_check, proxy): proxy for proxy in proxies}
 	for future in concurrent.futures.as_completed(checks):
 		checks[future]
 good.sort()
-with open (args.output, 'w') as output_file:
-	for proxy in good:
-		output_file.write(proxy + '\n')
-debug('Total: ' + format(len(proxies), ',d'))
-debug('Bad:   ' + format(len(bad),     ',d'))
-debug('Good:  ' + format(len(good),    ',d'))
+with open(args.output, 'w') as output_file:
+	output_file.write('\n'.join(good))
+print('Total : ' + format(len(proxies),           ',d'))
+print('Good  : ' + format(len(good),              ',d'))
+print('Bad   : ' + format(len(proxies)-len(good), ',d'))
