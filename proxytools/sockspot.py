@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-# SockSpot (Blogspot Proxy Scraper)
-# Developed by acidvegas in Python 3
+# SockSpot
+# Developed by acidvegas in Python
 # http://github.com/acidvegas/proxytools
 # sockspot.py
 
@@ -15,6 +15,8 @@ import urllib.request
 # Blogspot URLs
 blogspot_list = (
 	'live-socks.net',
+	'newfreshproxies-24.blogspot.sg',
+	'proxyserverlist-24.blogspot.sg',
 	'socks24.org',
 	'sock5us.blogspot.com',
 	'sockproxy.blogspot.com',
@@ -25,14 +27,13 @@ blogspot_list = (
 
 # Settings
 max_results = 100 # Maximum number of results per-page.
-post_depth  = 2   # How many days back from the current date to pull posts from. (1 = Today Only)
+post_depth  = 1   # How many days back from the current date to pull posts from. (1 = Today Only)
 timeout     = 30  # Timeout for HTTP requests.
 
 # Globals
-proxy_file       = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'proxies.txt')
-proxy_list       = list()
-proxy_list_clean = list()
-threads          = dict()
+proxy_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'proxies.txt')
+proxy_list = list()
+threads    = dict()
 
 def debug(msg):
 	print(f'{get_time()} | [~] - {msg}')
@@ -80,18 +81,19 @@ def parse_blogspot(url):
 		error(f'Failed to parse {url} for proxies!', ex)
 
 # Main
-print(''.rjust(56, '#'))
+print('#'*56)
 print('#{0}#'.format(''.center(54)))
 print('#{0}#'.format('SockSpot Proxy Scraper'.center(54)))
 print('#{0}#'.format('Developed by acidvegas in Python 3'.center(54)))
 print('#{0}#'.format('https://github.com/acidvegas/proxytools'.center(54)))
 print('#{0}#'.format(''.center(54)))
-print(''.rjust(56, '#'))
+print('#'*56)
 debug(f'Scanning {len(blogspot_list)} URLs from list...')
 for url in blogspot_list:
 	threads[url] = threading.Thread(target=parse_blogspot, args=(url,))
 for thread in threads:
 	threads[thread].start()
+	time.sleep(10)
 for thread in threads:
 	threads[thread].join()
 debug('Found {0} total proxies!'.format(format(len(proxy_list), ',d')))

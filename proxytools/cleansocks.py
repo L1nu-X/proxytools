@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-# CleanSocks (Proxy List Cleaner/Tester)
-# Developed by acidvegas in Python 3
+# CleanSocks
+# Developed by acidvegas in Python
 # http://github.com/acidvegas/proxytools
 # cleansocks.py
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-# FloodBL (DNSBL Proxy Checker)
-# Developed by acidvegas in Python 3
+# FloodBL
+# Developed by acidvegas in Python
 # http://github.com/acidvegas/proxytools
 # floodbl.py
 
